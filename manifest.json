@@ -1,0 +1,1 @@
+{"name":"AK Music Player","short_name":"AK Music","start_url":"./","display":"standalone","background_color":"#080d18","theme_color":"#2563eb","description":"AK Music Player PWA","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
