@@ -1,10 +1,19 @@
-<!doctype html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ASHOK KUMAR YADAW Music Player</title><style>body{margin:0;background:#0b1020;color:#fff;font-family:Arial}.app{max-width:850px;margin:auto;padding:20px}.card{background:#151c2e;border-radius:24px;padding:24px;text-align:center}.cover{width:190px;height:190px;border-radius:20px;object-fit:cover;background:#222}.controls{display:flex;justify-content:center;gap:14px;margin:18px;align-items:center;flex-wrap:wrap}button{border:0;border-radius:50%;width:52px;height:52px;font-size:20px;cursor:pointer;background:#263454;color:#fff}.play{width:64px;height:64px;background:#2563eb}.mode{font-size:17px;position:relative}.mode.active{background:#2563eb;box-shadow:0 0 0 3px #2563eb33}.mode.active::after{content:"ON";position:absolute;right:-3px;top:-3px;background:#22c55e;color:#06120a;font:bold 9px Arial;padding:2px 4px;border-radius:6px}.hint{font-size:11px;color:#9ca3af;margin-top:-10px;margin-bottom:10px}.bar{width:100%}.song{display:flex;gap:12px;padding:14px;border-radius:14px;margin-top:6px;background:#151c2e;cursor:pointer}.song.active{background:#263454}.name{flex:1;text-align:left}.small{font-size:11px;color:#9ca3af}.status{font-size:13px;color:#9ca3af;margin-top:10px}.err{color:#fca5a5}</style>
+<!doctype html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ASHOK KUMAR YADAW Music Player</title><style>body{margin:0;background:#0b1020;color:#fff;font-family:Arial}.app{max-width:850px;margin:auto;padding:20px}.card{background:#151c2e;border-radius:24px;padding:24px;text-align:center}.cover{width:190px;height:190px;border-radius:20px;object-fit:cover;background:#222}.controls{display:flex;justify-content:center;gap:14px;margin:18px;align-items:center;flex-wrap:wrap}button{border:0;border-radius:50%;width:52px;height:52px;font-size:20px;cursor:pointer;background:#263454;color:#fff}.play{width:64px;height:64px;background:#2563eb}.mode{font-size:17px;position:relative}.mode.active{background:#2563eb;box-shadow:0 0 0 3px #2563eb33}.mode.active::after{content:"ON";position:absolute;right:-3px;top:-3px;background:#22c55e;color:#06120a;font:bold 9px Arial;padding:2px 4px;border-radius:6px}.hint{font-size:11px;color:#9ca3af;margin-top:-10px;margin-bottom:10px}.bar{width:100%}.song{display:flex;gap:12px;padding:14px;border-radius:14px;margin-top:6px;background:#151c2e;cursor:pointer}.song.active{background:#263454}.name{flex:1;text-align:left}.small{font-size:11px;color:#9ca3af}.status{font-size:13px;color:#9ca3af;margin-top:10px}.err{color:#fca5a5}</style></head><body>
+
+<div id="akSongSearch" class="ak-search">
+  <input id="akSongSearchInput" type="search" placeholder="🔎 Song Search — गाने का नाम लिखें..." autocomplete="off">
+  <button id="akSongSearchClear" type="button">✕</button>
+  <div id="akSongSearchResult" aria-live="polite"></div>
+</div>
 <style>
-.song-search-hidden{display:none!important}
-#songSearchInput:focus{outline:2px solid #888;outline-offset:1px}
+.ak-search{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+.ak-search input{flex:1;min-width:220px;padding:11px 13px;border:1px solid #bbb;border-radius:10px;font-size:15px}
+.ak-search button{padding:10px 13px;border:0;border-radius:10px;cursor:pointer}
+#akSongSearchResult{width:100%;font-size:13px;opacity:.75}
+.ak-search-hidden{display:none!important}
 </style>
 
-</head><body><div class="app"><h1>🎵 ASHOK KUMAR YADAW Music Player</h1><div class="card"><img id="cover" class="cover"><h2 id="title">Loading…</h2><div id="artist">GitHub Playlist</div><input id="progress" class="bar" type="range" min="0" max="100" value="0"><div><span id="cur">0:00</span> / <span id="dur">0:00</span></div><div class="controls"><button id="prev" title="Previous">⏮</button><button id="shuffle" class="mode" title="Shuffle">🔀</button><button id="play" class="play" title="Play / Pause">▶</button><button id="repeat" class="mode" title="Repeat current song">🔁</button><button id="next" title="Next">⏭</button></div><div id="modeHint" class="hint">Shuffle: OFF · Repeat: OFF</div><input id="volume" type="range" min="0" max="1" step=".01" value=".9"><div id="status" class="status">GitHub से songs खोज रहा है…</div></div><div id="list"></div><audio id="audio" preload="metadata" autoplay></audio></div><script>
+<div class="app"><h1>🎵 ASHOK KUMAR YADAW Music Player</h1><div class="card"><img id="cover" class="cover"><h2 id="title">Loading…</h2><div id="artist">GitHub Playlist</div><input id="progress" class="bar" type="range" min="0" max="100" value="0"><div><span id="cur">0:00</span> / <span id="dur">0:00</span></div><div class="controls"><button id="prev" title="Previous">⏮</button><button id="shuffle" class="mode" title="Shuffle">🔀</button><button id="play" class="play" title="Play / Pause">▶</button><button id="repeat" class="mode" title="Repeat current song">🔁</button><button id="next" title="Next">⏭</button></div><div id="modeHint" class="hint">Shuffle: OFF · Repeat: OFF</div><input id="volume" type="range" min="0" max="1" step=".01" value=".9"><div id="status" class="status">GitHub से songs खोज रहा है…</div></div><div id="list"></div><audio id="audio" preload="metadata" autoplay></audio></div><script>
 const OWNER='Ashok-Kumar-Yadaw',REPO='My-Music-File',BRANCH='main';
 const audio=document.getElementById('audio'),list=document.getElementById('list'),status=document.getElementById('status');let songs=[],idx=0;const savedShuffle=localStorage.getItem('akShuffle');let shuffle=savedShuffle===null?true:savedShuffle==='1';let repeat=localStorage.getItem('akRepeat')==='1';
 const api=p=>`https://api.github.com/repos/${OWNER}/${REPO}/contents/${p||''}`;
@@ -20,12 +29,61 @@ document.getElementById('play').onclick=()=>{if(!audio.src)load(0);if(audio.paus
 document.getElementById('prev').onclick=()=>load(idx-1,true);document.getElementById('next').onclick=()=>load(nextIndex(),true);document.getElementById('shuffle').onclick=()=>{shuffle=!shuffle;updateModes();status.textContent=shuffle?'Shuffle चालू — गाने random क्रम में बजेंगे':'Shuffle बंद — गाने सूची के क्रम में बजेंगे'};document.getElementById('repeat').onclick=()=>{repeat=!repeat;updateModes();status.textContent=repeat?'Repeat चालू — यही गाना खत्म होने पर फिर से बजेगा':'Repeat बंद'};audio.onended=()=>{if(repeat){load(idx,true)}else{load(nextIndex(),true)}};audio.ontimeupdate=()=>{document.getElementById('progress').value=audio.duration?audio.currentTime/audio.duration*100:0;document.getElementById('cur').textContent=fmt(audio.currentTime);document.getElementById('dur').textContent=fmt(audio.duration)};audio.onerror=()=>{status.textContent='MP3 load नहीं हुआ। GitHub file public है या नहीं जाँचें।';status.className='status err'};document.getElementById('progress').oninput=e=>{if(audio.duration)audio.currentTime=audio.duration*e.target.value/100};document.getElementById('volume').oninput=e=>audio.volume=e.target.value;
 updateModes();(async()=>{try{songs=await scan();songs.sort();if(!songs.length){status.textContent='Repository में MP3 नहीं मिली';return}status.textContent=songs.length+' songs मिले';load(shuffle?Math.floor(Math.random()*songs.length):0,true)}catch(e){status.textContent='GitHub से songs नहीं मिल सके: '+e.message;status.className='status err'}})();audio.volume=.9;
 </script>
-<div id="songSearchBox" style="display:flex;gap:8px;align-items:center;margin:12px 0;">
-  <input id="songSearchInput" type="search" placeholder="🔎 गाना खोजें..." autocomplete="off"
-    style="flex:1;padding:10px 12px;border-radius:10px;border:1px solid #ccc;font-size:15px;">
-  <button id="clearSongSearch" type="button" title="खोज साफ करें"
-    style="padding:10px 12px;border:0;border-radius:10px;cursor:pointer;">✕</button>
-</div>
-<div id="songSearchStatus" style="font-size:13px;opacity:.75;margin-bottom:8px;"></div>
+<script id="akSongSearchScript">
+(function(){
+  const input=document.getElementById('akSongSearchInput');
+  const clear=document.getElementById('akSongSearchClear');
+  const result=document.getElementById('akSongSearchResult');
+  if(!input) return;
+
+  function songText(el){
+    return ((el.innerText||el.textContent||'')+' '+(el.getAttribute('title')||'')+' '+(el.getAttribute('aria-label')||'')).trim().toLowerCase();
+  }
+
+  function getSongRows(){
+    const selectors=[
+      '[data-song-id]','[data-song-index]','[data-track-id]',
+      '.song-item','.track-item','.music-item','.playlist-item',
+      '.song','.track','li[data-url]','li','tr'
+    ];
+    const out=[], seen=new Set();
+    selectors.forEach(s=>{
+      document.querySelectorAll(s).forEach(el=>{
+        if(seen.has(el) || el.closest('#akSongSearch')) return;
+        const t=songText(el);
+        if(t && t.length>1){
+          seen.add(el); out.push(el);
+        }
+      });
+    });
+    return out;
+  }
+
+  function apply(){
+    const q=input.value.trim().toLowerCase();
+    const rows=getSongRows();
+    if(!q){
+      rows.forEach(el=>el.classList.remove('ak-search-hidden'));
+      result.textContent='';
+      return;
+    }
+    let n=0;
+    rows.forEach(el=>{
+      const ok=songText(el).includes(q);
+      el.classList.toggle('ak-search-hidden',!ok);
+      if(ok)n++;
+    });
+    result.textContent=n ? `${n} matching song(s)` : 'कोई गाना नहीं मिला';
+  }
+
+  input.addEventListener('input',apply);
+  clear.addEventListener('click',()=>{input.value='';apply();input.focus();});
+
+  // The original player loads songs asynchronously from GitHub.
+  // Re-apply search whenever its list changes.
+  const observer=new MutationObserver(()=>{ if(input.value.trim()) apply(); });
+  observer.observe(document.body,{childList:true,subtree:true});
+})();
+</script>
 
 </body></html>
