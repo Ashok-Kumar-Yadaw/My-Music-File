@@ -1,0 +1,51 @@
+<!doctype html><html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ASHOK KUMAR YADAW Music Player</title><style>body{margin:0;background:#0b1020;color:#fff;font-family:Arial}.app{max-width:850px;margin:auto;padding:20px}.card{background:#151c2e;border-radius:24px;padding:24px;text-align:center}.cover{width:190px;height:190px;border-radius:20px;object-fit:cover;background:#222}.controls{display:flex;justify-content:center;gap:14px;margin:18px;align-items:center;flex-wrap:wrap}button{border:0;border-radius:50%;width:52px;height:52px;font-size:20px;cursor:pointer;background:#263454;color:#fff}.play{width:64px;height:64px;background:#2563eb}.mode{font-size:17px;position:relative}.mode.active{background:#2563eb;box-shadow:0 0 0 3px #2563eb33}.mode.active::after{content:"ON";position:absolute;right:-3px;top:-3px;background:#22c55e;color:#06120a;font:bold 9px Arial;padding:2px 4px;border-radius:6px}.hint{font-size:11px;color:#9ca3af;margin-top:-10px;margin-bottom:10px}.bar{width:100%}.song{display:flex;gap:12px;padding:14px;border-radius:14px;margin-top:6px;background:#151c2e;cursor:pointer}.song.active{background:#263454}.name{flex:1;text-align:left}.small{font-size:11px;color:#9ca3af}.status{font-size:13px;color:#9ca3af;margin-top:10px}.err{color:#fca5a5}.search{width:100%;box-sizing:border-box;margin:14px 0;padding:13px 16px;border:1px solid #334155;border-radius:14px;background:#0f172a;color:#fff;font-size:16px;outline:none}.search:focus{border-color:#2563eb}.noresults{text-align:center;color:#9ca3af;padding:18px}.download{display:inline-flex;align-items:center;justify-content:center;border-radius:10px;width:auto;height:38px;padding:0 12px;background:#16a34a;color:#fff;font-size:14px;text-decoration:none;white-space:nowrap}.download:hover{background:#15803d}</style></head><body><div class="app"><h1>🎵 ASHOK KUMAR YADAW Music Player</h1><div class="card"><img id="cover" class="cover"><h2 id="title">Loading…</h2><div id="artist">GitHub Playlist</div><input id="progress" class="bar" type="range" min="0" max="100" value="0"><div><span id="cur">0:00</span> / <span id="dur">0:00</span></div><div class="controls"><button id="prev" title="Previous">⏮</button><button id="shuffle" class="mode" title="Shuffle">🔀</button><button id="play" class="play" title="Play / Pause">▶</button><button id="repeat" class="mode" title="Repeat current song">🔁</button><button id="next" title="Next">⏭</button></div><div id="modeHint" class="hint">Shuffle: OFF · Repeat: OFF</div><input id="volume" type="range" min="0" max="1" step=".01" value=".9"><div id="status" class="status">GitHub से songs खोज रहा है…</div></div><input id="search" class="search" type="search" placeholder="🔎 Song Search..." autocomplete="off"><div id="list"></div><audio id="audio" preload="metadata" autoplay></audio></div><script>
+const OWNER='Ashok-Kumar-Yadaw',REPO='My-Music-File',BRANCH='main';
+const audio=document.getElementById('audio'),list=document.getElementById('list'),status=document.getElementById('status');let songs=[],idx=0;const savedShuffle=localStorage.getItem('akShuffle');let shuffle=savedShuffle===null?true:savedShuffle==='1';let repeat=localStorage.getItem('akRepeat')==='1';
+const api=p=>`https://api.github.com/repos/${OWNER}/${REPO}/contents/${p||''}`;
+const raw=p=>`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${p.split('/').map(encodeURIComponent).join('/')}`;
+const fmt=s=>!isFinite(s)?'0:00':Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+const clean=s=>s.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');
+async function scan(path='',out=[]){let r=await fetch(api(path),{cache:'no-store'});if(!r.ok)throw Error('GitHub API '+r.status);let a=await r.json();for(const x of a){if(x.type==='dir')await scan(x.path,out);else if(/\.(mp3|m4a|ogg|wav|aac)$/i.test(x.name))out.push(x.path)}return out}
+function normalize(s){return String(s||'').toLocaleLowerCase('hi').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()}
+function filteredSongs(){const q=normalize(document.getElementById('search').value);if(!q)return songs;return songs.filter(p=>normalize(clean(p.split('/').pop())+' '+p).includes(q))}
+function render(){
+  list.innerHTML='';
+  const visible=filteredSongs();
+  if(!visible.length){list.innerHTML='<div class="noresults">कोई matching song नहीं मिला</div>';return}
+  visible.forEach(p=>{
+    const i=songs.indexOf(p);
+    let d=document.createElement('div');
+    d.className='song '+(i===idx?'active':'');
+    const name=document.createElement('div'); name.className='name';
+    const b=document.createElement('b'); b.textContent=clean(p.split('/').pop());
+    const sm=document.createElement('div'); sm.className='small'; sm.textContent=p;
+    name.append(b,sm);
+    const dl=document.createElement('a');
+     dl.className='download';
+     dl.textContent='⬇️ Download';
+     dl.href=raw(p);
+     dl.download=clean(p.split('/').pop());
+     dl.target='_blank';
+     dl.rel='noopener';
+     dl.onclick=(e)=>e.stopPropagation();
+     d.append(document.createTextNode('🎵'),name,document.createTextNode('▶'),dl);
+     d.onclick=()=>load(i,true);
+     list.appendChild(d);
+  });
+  const q=document.getElementById('search').value.trim();
+  status.textContent=q ? visible.length+' matching song'+(visible.length===1?'':'s')+' मिले' : songs.length+' songs मिले';
+}
+function updateModes(){const sh=document.getElementById('shuffle'),re=document.getElementById('repeat'),hint=document.getElementById('modeHint');sh.classList.toggle('active',shuffle);re.classList.toggle('active',repeat);hint.textContent='Shuffle: '+(shuffle?'ON':'OFF')+' · Repeat: '+(repeat?'ON (एक ही गाना)':'OFF');localStorage.setItem('akShuffle',shuffle?'1':'0');localStorage.setItem('akRepeat',repeat?'1':'0')}
+function nextIndex(){
+  const visible=filteredSongs().map(p=>songs.indexOf(p));
+  if(!visible.length)return idx;
+  if(!shuffle){const pos=visible.indexOf(idx);return visible[(pos<0?0:pos+1)%visible.length]}
+  if(visible.length<2)return visible[0];
+  let n=idx;while(n===idx)n=visible[Math.floor(Math.random()*visible.length)];return n;
+}
+function load(i,auto=false){if(!songs.length)return;idx=(i+songs.length)%songs.length;let p=songs[idx];audio.src=raw(p);audio.load();document.getElementById('title').textContent=clean(p.split('/').pop());document.getElementById('cover').src='https://picsum.photos/seed/'+encodeURIComponent(p)+'/400/400';render();if(auto)audio.play().then(()=>document.getElementById('play').textContent='⏸').catch(()=>{status.textContent='Autoplay browser ने रोक दिया — Play button दबाकर शुरू करें';status.className='status err'})}
+document.getElementById('play').onclick=()=>{if(!audio.src)load(0);if(audio.paused)audio.play().then(()=>{document.getElementById('play').textContent='⏸';status.textContent='Playing'}).catch(()=>status.textContent='Audio play नहीं हुआ');else{audio.pause();document.getElementById('play').textContent='▶'}};
+document.getElementById('prev').onclick=()=>load(idx-1,true);document.getElementById('next').onclick=()=>load(nextIndex(),true);document.getElementById('shuffle').onclick=()=>{shuffle=!shuffle;updateModes();status.textContent=shuffle?'Shuffle चालू — गाने random क्रम में बजेंगे':'Shuffle बंद — गाने सूची के क्रम में बजेंगे'};document.getElementById('repeat').onclick=()=>{repeat=!repeat;updateModes();status.textContent=repeat?'Repeat चालू — यही गाना खत्म होने पर फिर से बजेगा':'Repeat बंद'};audio.onended=()=>{if(repeat){load(idx,true)}else{load(nextIndex(),true)}};audio.ontimeupdate=()=>{document.getElementById('progress').value=audio.duration?audio.currentTime/audio.duration*100:0;document.getElementById('cur').textContent=fmt(audio.currentTime);document.getElementById('dur').textContent=fmt(audio.duration)};audio.onerror=()=>{status.textContent='MP3 load नहीं हुआ। GitHub file public है या नहीं जाँचें।';status.className='status err'};document.getElementById('progress').oninput=e=>{if(audio.duration)audio.currentTime=audio.duration*e.target.value/100};document.getElementById('volume').oninput=e=>audio.volume=e.target.value;
+document.getElementById('search').addEventListener('input',()=>{render();});
+updateModes();(async()=>{try{songs=await scan();songs.sort();if(!songs.length){status.textContent='Repository में MP3 नहीं मिली';return}status.textContent=songs.length+' songs मिले';load(shuffle?Math.floor(Math.random()*songs.length):0,true)}catch(e){status.textContent='GitHub से songs नहीं मिल सके: '+e.message;status.className='status err'}})();audio.volume=.9;
+</script></body></html>
